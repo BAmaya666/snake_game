@@ -160,8 +160,9 @@ class MAIN:
 	def draw_score(self):
 		score_text = str(len(self.snake.body) - 3)
 		score_surface = game_font.render(score_text,True,(178,255,102))
-		score_x = int(cell_size * cell_number - 60)
-		score_y = int(cell_size * cell_number - 40)
+		score_x = int(cell_size * cell_number - 40)
+		score_y = int(cell_size * cell_number - 580)
+		#/////////////// take the scoreboard out of the game field and center it\\\\\\\\\\\\\\\\
 		score_rect = score_surface.get_rect(center = (score_x,score_y))
 		apple_rect = apple.get_rect(midright = (score_rect.left,score_rect.centery))
 		bg_rect =pygame.Rect(apple_rect.left,apple_rect.top,apple_rect.width + score_rect.width + 6,apple_rect.height)
@@ -176,9 +177,13 @@ pygame.init()
 
 pygame.mixer.music.load("metalSlug2Desert.mp3")
 pygame.mixer.music.play(-1,0.0)
-pygame.mixer.music.set_volume(.5)
-cell_size = 30
-cell_number = 20
+vol = .5
+pygame.mixer.music.set_volume(vol)
+
+
+#press + to turn up the volume and - to turn down the volume///////////////////\\\\\\\\\\\\\
+cell_size = 30 #how big the blocks are
+cell_number = 20 # how many blocks are horizontally
 screen = pygame.display.set_mode((cell_number*cell_size,cell_number*cell_size))
 clock = pygame.time.Clock()
 apple = pygame.image.load("mouse_chiquito.png").convert_alpha()
@@ -209,6 +214,13 @@ while True:
 			if event.key ==pygame.K_KP3:#Right
 				if main_game.snake.direction.x != -1:
 					main_game.snake.direction = Vector2(1,0)
+			if event.key ==pygame.K_KP_MINUS:#music go down
+				vol = max(0.0, vol - 0.1)
+				pygame.mixer.music.set_volume(vol)
+			if event.key ==pygame.K_KP_PLUS:#music go up
+				vol = min(1.0, vol + 0.1)
+				pygame.mixer.music.set_volume(vol)
+			
 
 	screen.fill((51,0,102))
 	main_game.draw_elements()
