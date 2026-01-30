@@ -1,0 +1,547 @@
+/* style.css - Mobile Responsive Snake Game */
+
+/* Base styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+    height: 100vh;
+}
+
+#status {
+    display: inline-block;
+    vertical-align: top;
+    margin-top: 20px;
+    margin-left: 30px;
+    font-weight: bold;
+    color: rgb(120, 120, 120);
+}
+
+#progress {
+    height: 20px;
+    width: 300px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#progress::-webkit-progress-bar {
+    background-color: #f0f0f0;
+    border-radius: 10px;
+}
+
+#progress::-webkit-progress-value {
+    background: linear-gradient(to right, #4CAF50, #8BC34A);
+    border-radius: 10px;
+}
+
+div.emscripten { 
+    text-align: center; 
+}
+
+div.emscripten_border { 
+    border: 1px solid #ddd; 
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+div.thick_border { 
+    border: 4px solid #333; 
+}
+
+/* Canvas styles */
+canvas.emscripten {
+    border: 0px none;
+    background-color: transparent;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    padding: 0;
+    margin: 0 auto;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+/* Transfer/loading container */
+#transfer {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    text-align: center;
+    min-width: 300px;
+}
+
+/* Position classes */
+.topright {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 20;
+}
+
+.bottomright {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.trinfo {
+    position: relative;
+    right: 0px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    background: white;
+}
+
+.framed {
+    position: relative;
+    top: 150px;
+    right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: white;
+}
+
+/* Button styles */
+.button-container {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    background: linear-gradient(to right, #4CAF50, #45a049);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 44px;
+    min-width: 44px;
+}
+
+button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+button:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* System info */
+#system {
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#load_min, #load_avg, #load_max {
+    display: inline-block;
+    margin: 5px;
+    padding: 5px 10px;
+    background: #f0f0f0;
+    border-radius: 5px;
+    font-family: monospace;
+}
+
+#level, #stateBattery {
+    margin: 10px 0;
+    font-size: 14px;
+    color: #666;
+}
+
+/* Console area */
+#pyconsole {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: #1e1e1e;
+    color: #fff;
+    z-index: 30;
+    display: none;
+}
+
+#terminal {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    padding: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ===== MOBILE RESPONSIVE STYLES ===== */
+
+/* Mobile Sidebar/Controls */
+#sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    background: linear-gradient(to top, rgba(30, 30, 60, 0.95), rgba(20, 20, 40, 0.95));
+    backdrop-filter: blur(10px);
+    z-index: 10;
+    display: none; /* Hidden by default, shown via media query */
+    border-top: 3px solid #4CAF50;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+}
+
+.mobile-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 10px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.control-row {
+    display: flex;
+    justify-content: center;
+    margin: 8px 0;
+    width: 100%;
+}
+
+.mobile-button {
+    width: 70px;
+    height: 70px;
+    margin: 8px;
+    font-size: 28px;
+    font-weight: bold;
+    background: linear-gradient(145deg, rgba(0, 150, 255, 0.8), rgba(0, 100, 200, 0.9));
+    border: 3px solid rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    transition: all 0.1s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-button:active {
+    background: linear-gradient(145deg, rgba(0, 200, 255, 0.9), rgba(0, 150, 255, 1));
+    transform: scale(0.92);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-button.wide {
+    width: 150px;
+    border-radius: 35px;
+    font-size: 22px;
+}
+
+#mobile-score {
+    color: lime;
+    font-size: 28px;
+    font-weight: bold;
+    margin: 10px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#mobile-high-score {
+    color: gold;
+    font-size: 22px;
+    margin: 5px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Touch area for swipe controls */
+#touch-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 70%;
+    z-index: 5;
+    display: none;
+    touch-action: none;
+    background: rgba(0, 0, 0, 0.01); /* Almost transparent */
+}
+
+/* Mobile control labels */
+.control-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    margin-top: 5px;
+    text-align: center;
+}
+
+/* Score display on mobile */
+.score-display {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px 20px;
+    border-radius: 20px;
+    margin: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Volume control container */
+.volume-controls {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 10px;
+    border-radius: 25px;
+    margin: 10px;
+}
+
+/* ===== MEDIA QUERIES ===== */
+
+/* Mobile devices (portrait) */
+@media (max-width: 768px) and (orientation: portrait) {
+    /* Game canvas takes top 70% */
+    canvas.emscripten {
+        position: fixed !important;
+        top: 0 !important;
+        height: 70vh !important;
+        width: 100vw !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: auto !important;
+    }
+    
+    /* Show mobile controls */
+    #sidebar {
+        display: flex !important;
+        height: 30vh !important;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    /* Hide desktop UI elements */
+    .topright, .bottomright {
+        display: none !important;
+    }
+    
+    /* Adjust mobile buttons for smaller screens */
+    .mobile-button {
+        width: 65px;
+        height: 65px;
+        font-size: 26px;
+        margin: 6px;
+    }
+    
+    .mobile-button.wide {
+        width: 140px;
+        font-size: 20px;
+    }
+    
+    /* Loading screen adjustments */
+    #transfer {
+        width: 80vw;
+        max-width: 300px;
+        padding: 20px;
+    }
+}
+
+/* Mobile devices (landscape) */
+@media (max-width: 1024px) and (orientation: landscape) {
+    /* Different layout for landscape */
+    canvas.emscripten {
+        position: fixed !important;
+        top: 0 !important;
+        height: 100vh !important;
+        width: 70vw !important;
+        left: 0 !important;
+    }
+    
+    /* Controls on the right side */
+    #sidebar {
+        display: flex !important;
+        height: 100vh !important;
+        width: 30vw !important;
+        right: 0 !important;
+        left: auto !important;
+        top: 0 !important;
+        bottom: auto !important;
+        border-top: none;
+        border-left: 3px solid #4CAF50;
+    }
+    
+    .mobile-controls {
+        width: 100%;
+        height: 100%;
+        padding: 10px;
+        justify-content: center;
+    }
+    
+    .control-row {
+        flex-wrap: wrap;
+    }
+    
+    .mobile-button {
+        width: 55px;
+        height: 55px;
+        font-size: 22px;
+        margin: 5px;
+    }
+    
+    .mobile-button.wide {
+        width: 120px;
+        height: 55px;
+        font-size: 18px;
+    }
+    
+    /* Hide desktop UI elements */
+    .topright, .bottomright {
+        display: none !important;
+    }
+}
+
+/* Tablet devices */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .mobile-button {
+        width: 80px;
+        height: 80px;
+        font-size: 32px;
+    }
+    
+    .mobile-button.wide {
+        width: 180px;
+        font-size: 24px;
+    }
+    
+    #mobile-score {
+        font-size: 32px;
+    }
+    
+    #mobile-high-score {
+        font-size: 26px;
+    }
+}
+
+/* Desktop - hide mobile controls */
+@media (min-width: 1025px) {
+    #sidebar {
+        display: none !important;
+    }
+    
+    #touch-area {
+        display: none !important;
+    }
+}
+
+/* Large screens */
+@media (min-width: 1200px) {
+    canvas.emscripten {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+}
+
+/* Prevent text selection and tap highlight */
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Allow text selection in specific elements */
+#terminal, #info, #status {
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+/* Smooth transitions */
+canvas, #sidebar, .mobile-button {
+    transition: all 0.3s ease;
+}
+
+/* Loading spinner (optional) */
+.spinner {
+    width: 40px;
+    height: 40px;
+    margin: 20px auto;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #4CAF50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Fullscreen support */
+:fullscreen canvas.emscripten {
+    width: 100vw !important;
+    height: 100vh !important;
+}
+
+:-webkit-full-screen canvas.emscripten {
+    width: 100vw !important;
+    height: 100vh !important;
+}
+
+:-moz-full-screen canvas.emscripten {
+    width: 100vw !important;
+    height: 100vh !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .mobile-button {
+        border: 3px solid white;
+    }
+    
+    #sidebar {
+        border-top: 3px solid white;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
