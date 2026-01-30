@@ -1,5 +1,32 @@
-import pygame, sys, random, asyncio
+import pygame, sys, random, asyncio, os, sys
 from pygame.math import Vector2
+
+# Detect if running in browser/mobile
+def is_mobile():
+    try:
+        # Check user agent if we can
+        import js
+        user_agent = js.navigator.userAgent.lower()
+        mobile_keywords = ['android', 'webos', 'iphone', 'ipad', 'ipod', 
+                          'blackberry', 'windows phone', 'mobile']
+        return any(keyword in user_agent for keyword in mobile_keywords)
+    except:
+        return False
+
+# Modify your constants based on device
+if is_mobile():
+    # Mobile layout: bigger cells, smaller grid
+    cell_size = 40  # Bigger for touch
+    cell_number = 15  # Smaller grid for mobile
+    SIDEBAR_WIDTH = 0  # No sidebar on mobile
+else:
+    # Desktop layout
+    cell_size = 30
+    cell_number = 20
+    SIDEBAR_WIDTH = 300
+
+SCREEN_WIDTH = cell_number * cell_size + SIDEBAR_WIDTH
+SCREEN_HEIGHT = cell_number * cell_size
 
 class SNAKE:
     def __init__(self):
@@ -246,6 +273,27 @@ class MAIN:
         with open("high_score.txt", "w") as f:
             f.write(str(self.high_score))
 
+    def draw_sidebar(self):
+        # Only draw sidebar on desktop
+        if SIDEBAR_WIDTH > 0:
+            # ... existing desktop sidebar code ...
+            pass
+        
+        # On mobile, we need to update the HTML elements
+        else:
+            try:
+                import js
+                # Update mobile score display
+                js.updateMobileScore(self.score, self.high_score)
+                js.updateMobileVolume(self.vol)
+            except:
+                pass  # Not running in browser
+    
+    # Add volume as instance variable
+    def __init__(self):
+        # ... existing init ...
+        self.vol = 0.5  # Make sure this is here
+
 # Initialize pygame
 pygame.mixer.pre_init(44100,-16,2,512)
 pygame.init()
@@ -277,44 +325,70 @@ pygame.time.set_timer(SCREEN_UPDATE,120)
 main_game = MAIN()
 
 async def main():
-    global vol  # ← Add this line at the very beginning
-    import pygbag.aio as asyncio  # Use pygbag's asyncio
-    target_fps = 30  # Lower from 60 to 30 for better performance
-
+    global vol
+    target_fps = 30
+    game_paused = False  # Add pause state
+    
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == SCREEN_UPDATE:
+            
+            if event.type == SCREEN_UPDATE and not game_paused:
                 main_game.update()
+            
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_w: #Up
+                # Movement
+                if event.key == pygame.K_w:
                     if main_game.snake.direction.y != 1:
                         main_game.snake.direction = Vector2(0,-1)
-                if event.key == pygame.K_s: #Down
+                if event.key == pygame.K_s:
                     if main_game.snake.direction.y != -1:
                         main_game.snake.direction = Vector2(0,1)
-                if event.key == pygame.K_a: #Left
+                if event.key == pygame.K_a:
                     if main_game.snake.direction.x != 1:
                         main_game.snake.direction = Vector2(-1,0)
-                if event.key == pygame.K_d: #Right
+                if event.key == pygame.K_d:
                     if main_game.snake.direction.x != -1:
                         main_game.snake.direction = Vector2(1,0)
                 
-                # Volume controls
-                if event.key == pygame.K_LEFTBRACKET: #music go down
-                    vol = max(0.0, vol - 0.1)
-                    pygame.mixer.music.set_volume(vol)
-                if event.key == pygame.K_RIGHTBRACKET: #music go up
-                    vol = min(1.0, vol + 0.1)
-                    pygame.mixer.music.set_volume(vol)
+                # Volume
+                if event.key in [pygame.K_MINUS, pygame.K_UNDERSCORE, pygame.K_LEFTBRACKET]:
+                    main_game.vol = max(0.0, main_game.vol - 0.1)
+                    pygame.mixer.music.set_volume(main_game.vol)
+                if event.key in [pygame.K_PLUS, pygame.K_EQUALS, pygame.K_RIGHTBRACKET]:
+                    main_game.vol = min(1.0, main_game.vol + 0.1)
+                    pygame.mixer.music.set_volume(main_game.vol)
+                
+                # Pause (Space)
+                if event.key == pygame.K_SPACE:
+                    game_paused = not game_paused
+                
+                # Restart (R)
+                if event.key == pygame.K_r:
+                    main_game.snake.reset()
+                    main_game.fruit.randomize()
+                    main_game.score = 0
+                    game_paused = False
+                
+                # ESC to quit
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
         
         # Draw everything
-        screen.fill((51,0,102))  # Game area background
+        screen.fill((51,0,102))
         main_game.draw_elements()
+        
+        # Draw pause overlay if paused
+        if game_paused:
+            pause_font = pygame.font.Font(None, 72)
+            pause_text = pause_font.render("PAUSED", True, (255, 255, 255))
+            screen.blit(pause_text, (SCREEN_WIDTH//2 - pause_text.get_width()//2, 
+                                    SCREEN_HEIGHT//2 - pause_text.get_height()//2))
+        
         pygame.display.update()
-        # clock.tick(60)  # 60 frames per second
         await asyncio.sleep(1/target_fps)
 
 asyncio.run(main())
